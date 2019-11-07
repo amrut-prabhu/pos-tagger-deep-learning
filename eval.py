@@ -33,4 +33,4 @@ if __name__ == "__main__":
             if cur_out_tags[j] == cur_ref_tags[j]:
                 matched_tags += 1
 
-    print("Accuracy=", float(matched_tags) / total_tags)
+    print("Accuracy of", ref_file, "=", float(matched_tags) / total_tags)
