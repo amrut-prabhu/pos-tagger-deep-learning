@@ -25,11 +25,11 @@ echo $ACCURACY
 echo "sents $ACCURACY" >> $TEST_RESULTS
 echo
 
-rm -f 3.out
-python runtagger.py 3.test model-file 3.out
-ACCURACY=$(python eval.py 3.out 3.answer)
+rm -f 5.out
+python runtagger.py 5.test model-file 5.out
+ACCURACY=$(python eval.py 5.out 5.answer)
 echo $ACCURACY
-echo "Test3 $ACCURACY" >> $TEST_RESULTS
+echo "Test5 $ACCURACY" >> $TEST_RESULTS
 echo
 
 rm -f 4.out
@@ -39,11 +39,11 @@ echo $ACCURACY
 echo "Test4 $ACCURACY" >> $TEST_RESULTS
 echo
 
-rm -f 5.out
-python runtagger.py 5.test model-file 5.out
-ACCURACY=$(python eval.py 5.out 5.answer)
+rm -f 3.out
+python runtagger.py 3.test model-file 3.out
+ACCURACY=$(python eval.py 3.out 3.answer)
 echo $ACCURACY
-echo "Test5 $ACCURACY" >> $TEST_RESULTS
+echo "Test3 $ACCURACY" >> $TEST_RESULTS
 echo
 
 rm -f 2.out
