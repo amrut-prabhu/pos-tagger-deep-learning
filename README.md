@@ -41,7 +41,7 @@ Parameters and Hyperparameters:
     - `num_lstm_units` = 50 
     - `embedding_dim` = 32
 - Batch size `b` = 32
-- Max words in a sentence `max_length` = 250
+- Max words in a sentence `max_length` = 150
 - Num epochs = 7
 - Learning rate `lr` of SGD optimizer
     - For epochs 0-3 = 0.1
@@ -52,10 +52,10 @@ Results of the POS tagger after training on `sents.train`.
 
 | Test case    | Accuracy |
 | ------------ | -------- |
-| `sents.test` | 0.94266  |
-| `2.train`    | 0.84498  |
-| `2a.train`   | 0.82832  |
-| `2b.train`   | 0.82223  |
-| `3.train`    | 0.80777  |
-| `4.train`    | 0.93860  |
-| `5.train`    | 0.93513  |
+| `sents.test` | 0.94363  |
+| `2.test`     | 0.84554  |
+| `2a.test`    | 0.83023  |
+| `2b.test`    | 0.82338  |
+| `3.test`     | 0.80642  |
+| `4.test`     | 0.93334  |
+| `5.test`     | 0.93843  |

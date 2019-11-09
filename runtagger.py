@@ -144,11 +144,18 @@ def tag_sentence(test_file, model_file, out_file):
 
             # We don't train here since we are evaluating. So, the code is wrapped in torch.no_grad()
             with torch.no_grad():
-                inputs = prepare_sequence([line] * b, word_to_index, max_length, device)
-                tag_scores = model(inputs, max_length)
+                tag_names = []
+                lines = []
+                if len(line) > max_length:
+                    lines.extend((line[:max_length], line[max_length:]))
+                else:
+                    lines.append(line)
+                for l in lines:
+                    inputs = prepare_sequence([l] * b, word_to_index, max_length, device)
+                    tag_scores = model(inputs, max_length)
 
-                v, tag_indices = torch.max(tag_scores[0], 1)
-                tag_names = [index_to_tag[idx.item()] for idx in tag_indices]
+                    v, tag_indices = torch.max(tag_scores[0], 1)
+                    tag_names += [index_to_tag[idx.item()] for idx in tag_indices]
 
             output = ""
             for word, tag in zip(line, tag_names):
