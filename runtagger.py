@@ -11,49 +11,13 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
 
-class CharacterEncoder(nn.Module):
-    def __init__(self, vocab_size, embedding_dim, filter_size, hidden_dim, pad_idx):
-        super().__init__()
-        
-        assert filter_size % 2 == 1, "Kernel size must be odd!"
-        
-        self.embedding_dim = embedding_dim
-        self.hidden_dim = hidden_dim
-        
-        self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx = pad_idx)
-        
-        self.cnn = nn.Conv1d(in_channels = embedding_dim,
-                             out_channels = hidden_dim,
-                             kernel_size = filter_size,
-                             padding = (filter_size - 1) // 2)
-        
-    def forward(self, chars):
-        batch_size = chars.shape[0]
-        sent_len = chars.shape[1]
-        word_len = chars.shape[2]
-        
-        embedded = self.embedding(chars)
-        
-        embedded = embedded.view(-1, word_len, self.embedding_dim)
-        embedded = embedded.permute(0, 2, 1)
-        
-        embedded = self.cnn(embedded)
-                
-        embedded = embedded.view(sent_len, batch_size, self.hidden_dim, word_len)
-                
-        embedded = torch.max(embedded, dim = -1).values
-        embedded = embedded.permute(1, 0, 2)
-        
-        return embedded
-
 class LSTMTagger(nn.Module):
-    def __init__(self, num_layers, batch_size, device, word_to_index, char_to_index, tag_to_index, num_lstm_units=50, embedding_dim=32):
+    def __init__(self, num_layers, batch_size, device, word_to_index, tag_to_index, num_lstm_units=44, embedding_dim=32):
         super(LSTMTagger, self).__init__()
         self.to(device)
         self.on_gpu = True
 
         self.vocabulary = word_to_index
-        self.char_to_index = char_to_index
         self.tags = tag_to_index
 
         self.num_layers = num_layers
@@ -74,16 +38,7 @@ class LSTMTagger(nn.Module):
         self.word_embedding = nn.Embedding(
             num_embeddings=vocabulary_size,
             embedding_dim=self.embedding_dim,
-            padding_idx=padding_idx,
-        )
-
-        padding_idx = self.char_to_index['<PADDING>'] # TODO:
-        self.char_encoder = CharacterEncoder(
-            vocab_size=len(self.char_to_index),
-            embedding_dim=50, 
-            filter_size=3, 
-            hidden_dim=self.embedding_dim, 
-            pad_idx=padding_idx,
+            padding_idx=padding_idx
         )
 
         # LSTM
@@ -99,7 +54,7 @@ class LSTMTagger(nn.Module):
         # Output layer
         self.hidden_to_tag = nn.Linear(
             self.num_lstm_units * 2,
-            self.num_tags,
+            self.num_tags
         )
     
     def init_hidden(self):
@@ -120,18 +75,13 @@ class LSTMTagger(nn.Module):
 
         return (hidden_1, hidden_2)
 
-    def forward(self, x, x_lengths, chars):
-        # Reset the LSTM hidden state for each sequence
+    def forward(self, x, x_lengths):
+        # Reset the LSTM hidden state.
         self.hidden = self.init_hidden()
         batch_size, seq_len = x.size()
 
-        # Input transformation: 
-        #   (batch_size, seq_len, 1) -> (batch_size, seq_len, embedding_dim)
-        #   (batch_size, seq_len, word_len) -> (batch_size, seq_len, embedding_dim)
+        # Input transformation: (batch_size, seq_len, 1) -> (batch_size, seq_len, embedding_dim)
         x = self.word_embedding(x)
-        chars_embedded = self.char_encoder(chars)
-
-        embedded = torch.cat((chars_embedded, x), dim = -1)
 
         # Hidden state: (batch_size, seq_len, embedding_dim) -> (batch_size, seq_len, num_lstm_units)
         x_lengths = torch.tensor([x_lengths]* self.batch_size, dtype=torch.long).to(self.device)
@@ -167,6 +117,7 @@ class LSTMTagger(nn.Module):
 
         return cross_entropy_loss
 
+
 def tag_sentence(test_file, model_file, out_file):
     # write your code here. You can add functions as well.
     # use torch library to load model_file
@@ -178,12 +129,12 @@ def tag_sentence(test_file, model_file, out_file):
         for line in t:
             test_lines.append(line)
    
-    max_length, max_word_length, b, word_to_index, char_to_index, tag_to_index, model_state_dict = torch.load(model_file)
+    max_length, b, word_to_index, tag_to_index, model_state_dict = torch.load(model_file)
     index_to_tag = {v:k for k,v in tag_to_index.items()}
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    model = LSTMTagger(2, b, device, word_to_index, char_to_index, tag_to_index)
+    model = LSTMTagger(2, b, device, word_to_index, tag_to_index)
     model.load_state_dict(model_state_dict)
     model.to(device)
 
@@ -194,9 +145,7 @@ def tag_sentence(test_file, model_file, out_file):
             # We don't train here since we are evaluating. So, the code is wrapped in torch.no_grad()
             with torch.no_grad():
                 inputs = prepare_sequence([line] * b, word_to_index, max_length, device)
-                chars = prepare_char_sequence([line] * b, char_to_index, max_length, max_word_length, device)
-
-                tag_scores = model(inputs, max_length, chars)
+                tag_scores = model(inputs, max_length)
 
                 v, tag_indices = torch.max(tag_scores[0], 1)
                 tag_names = [index_to_tag[idx.item()] for idx in tag_indices]
@@ -229,34 +178,7 @@ def prepare_sequence(lines, index_dict, max_length, device):
 
     return torch.tensor(new_lines, dtype=torch.long).to(device)
 
-def prepare_char_sequence(lines, index_dict, max_length, max_word_length, device):
-    new_lines = []
 
-    word_padding = []
-    for i in range(max_word_length):
-        word_padding.append(index_dict['<PADDING>'])
-
-    for line in lines:
-        indices = []
-        
-        for word in line:
-            char_indices = []
-            for c in word:
-                if c in index_dict:
-                    char_indices.append(index_dict[c])
-                else:
-                    char_indices.append(index_dict['<UNKNOWN>'])
-
-            char_indices += [index_dict['<PADDING>']] * (max_word_length - len(char_indices))
-            indices.append(char_indices)
-            
-        for i in range((max_length - len(indices))):
-            indices.append(word_padding) 
-
-        new_lines.append(indices)
-    
-    return torch.tensor(new_lines).to(device)
-    
 if __name__ == "__main__":
     # make no changes here
     test_file = sys.argv[1]
