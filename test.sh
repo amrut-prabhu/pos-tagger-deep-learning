@@ -27,6 +27,13 @@ echo $ACCURACY
 echo "sents $ACCURACY" >> $TEST_RESULTS
 echo
 
+rm -f 6.out
+python runtagger.py 6.test $MODEL 6.out
+ACCURACY=$(python eval.py 6.out 6.answer)
+echo $ACCURACY
+echo "Test6 $ACCURACY" >> $TEST_RESULTS
+echo
+
 rm -f 5.out
 python runtagger.py 5.test $MODEL 5.out
 ACCURACY=$(python eval.py 5.out 5.answer)
