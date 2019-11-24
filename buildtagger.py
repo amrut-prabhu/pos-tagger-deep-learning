@@ -163,7 +163,7 @@ def train_model(train_file, model_file):
     model = LSTMTagger(2, b, device, word_to_index, tag_to_index)
     model.to(device)
     loss_function = nn.NLLLoss()
-    optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay = 0.0005) # FIXME: 0.25 might have been better
+    optimizer = optim.SGD(model.parameters(), lr=0.25, momentum=0.9, weight_decay = 0.0005)
     
     for epoch in range(7): # FIXME: 10?
         print('epoch', epoch)
