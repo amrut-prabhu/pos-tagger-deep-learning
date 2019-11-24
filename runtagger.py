@@ -12,7 +12,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 class LSTMTagger(nn.Module):
-    def __init__(self, num_layers, batch_size, device, word_to_index, tag_to_index, num_lstm_units=44, embedding_dim=32):
+    def __init__(self, num_layers, batch_size, device, word_to_index, tag_to_index, num_lstm_units=50, embedding_dim=32):
         super(LSTMTagger, self).__init__()
         self.to(device)
         self.on_gpu = True

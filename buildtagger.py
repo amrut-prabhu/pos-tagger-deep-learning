@@ -12,7 +12,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 class LSTMTagger(nn.Module):
-    def __init__(self, num_layers, batch_size, device, word_to_index, tag_to_index, num_lstm_units=44, embedding_dim=32):
+    def __init__(self, num_layers, batch_size, device, word_to_index, tag_to_index, num_lstm_units=50, embedding_dim=32):
         super(LSTMTagger, self).__init__()
         self.to(device)
         self.on_gpu = True
@@ -157,24 +157,21 @@ def train_model(train_file, model_file):
 
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    max_length = 250
-    b = 40 # TODO: Batch size (32?)
+    max_length = 150
+    b = 32 # TODO: Batch size (32?)
 
     model = LSTMTagger(2, b, device, word_to_index, tag_to_index)
     model.to(device)
     loss_function = nn.NLLLoss()
-    optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay = 0.0005)
+    optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay = 0.0005) # FIXME: 0.25 might have been better
     
-    for epoch in range(6): # FIXME: 10?
-        print('epoch', epoch, 'elapsed', datetime.datetime.now() - startTime)
+    for epoch in range(7): # FIXME: 10?
+        print('epoch', epoch)
 
-        if epoch == 2:
-            for group in optimizer.param_groups:
-                group['lr'] = 0.25
-        elif epoch == 4:
+        if epoch == 4:
             for group in optimizer.param_groups:
                 group['lr'] = 0.05
-        elif epoch == 5:
+        elif epoch == 6:
             for group in optimizer.param_groups:
                 group['lr'] = 0.005
 
