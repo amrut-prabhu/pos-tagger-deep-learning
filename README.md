@@ -17,14 +17,13 @@ python runtagger.py <test_file_absolute_path> <model_file_absolute_path> <output
 # Example:
 python runtagger.py sents.test model-file sents.out
 ```
-python runtagger.py 6.test model-file 6.out
 
 **Evaluation**:
 ```sh
 python eval.py <output_file_absolute_path> <reference_file_absolute_path>
 
 # Example:
-python eval.py 6.out 6.answer
+python eval.py sents.out sents.answer
 ```
 
 ## Penn Treebank Tagset
