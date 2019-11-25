@@ -32,7 +32,7 @@ The list of POS tags can be seen [here](https://www.clips.uantwerpen.be/pages/mb
 
 ## Results
 
-The following are the results when using `model-file` (Bidirectional LSTM model without character embeddings).
+The following are the results when using a Bidirectional LSTM model (without character embeddings).
 Training time is restricted to 10 minutes. 
 Testing time for `6.test` is restricted to 2 minutes.
 
